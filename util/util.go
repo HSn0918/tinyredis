@@ -19,11 +19,12 @@ func HashKey(key string) int {
 // - h[a-b]llo matches hallo and hbllo
 // - Use \ to escape special characters if you want to match them verbatim./
 func PatternMatch(pattern, src string) bool {
-	patLen := len(pattern)
-	srcLen := len(src)
+	patLen, srcLen := len(pattern), len(src)
+
 	if patLen == 0 {
 		return srcLen == 0
 	}
+
 	if srcLen == 0 {
 		for i := 0; i < patLen; i++ {
 			if pattern[i] != '*' {
@@ -32,6 +33,7 @@ func PatternMatch(pattern, src string) bool {
 		}
 		return true
 	}
+
 	patPos, srcPos := 0, 0
 	for patPos < patLen {
 		switch pattern[patPos] {
@@ -53,7 +55,82 @@ func PatternMatch(pattern, src string) bool {
 				}
 			}
 			return false
+		case '?':
+			srcPos++
+			break
+		case '[':
+			var not, match, closePat bool
+			patPos++
+			// '[' must match a ']' character, otherwise it's wrong pattern and return false
+			if patPos == patLen {
+				return false
+			}
+			if pattern[patPos] == '^' {
+				not = true
+				patPos++
+			}
+			for patPos < patLen {
+				if pattern[patPos] == '\\' {
+					patPos++
+					if patPos == patLen { // pattern syntax error
+						return false
+					}
+					if pattern[patPos] == src[srcPos] {
+						match = true
+					}
+				} else if pattern[patPos] == ']' {
+					closePat = true
+					break
+				} else if pattern[patPos] == '-' {
+					if patPos+1 == patLen || pattern[patPos+1] == ']' { //  wrong pattern syntax
+						return false
+					}
+					start, end := pattern[patPos-1], pattern[patPos+1]
+					if src[srcPos] >= start && src[srcPos] <= end {
+						match = true
+					}
+					patPos++
+				} else {
+					if pattern[patPos] == src[srcPos] {
+						match = true
+					}
+				}
+				patPos++
+			}
+			if !closePat {
+				return false
+			}
+			if not {
+				match = !match
+			}
+			if !match {
+				return false
+			}
+			srcPos++
+			break
+		case '\\':
+			//	escape special character in pattern and fall through to default to handle
+			if patPos+1 < patLen {
+				patPos++
+			} else {
+				return false
+			}
+			//	fall into default
+		default:
+			if pattern[patPos] != src[srcPos] {
+				return false
+			}
+			srcPos++
+			break
+		}
+		patPos++
+		// When src has been consumed, pattern must be consumed to the end or only contains '*' in last
+		if srcPos >= srcLen {
+			for patPos < patLen && pattern[patPos] == '*' {
+				patPos++
+			}
+			break
 		}
 	}
-	return false //
+	return patPos == patLen && srcPos == srcLen
 }

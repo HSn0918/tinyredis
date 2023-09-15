@@ -80,21 +80,19 @@ func existsKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 	return RESP.MakeIntData(int64(eKeyCount))
 }
 func keysKey(m *MemDb, cmd [][]byte) RESP.RedisData {
-	cmdName := string(cmd[0])
-	if strings.ToLower(cmdName) != "keys" || len(cmd) != 2 {
-		logger.Error("keysKey Function: command is not keys")
+	if strings.ToLower(string(cmd[0])) != "keys" || len(cmd) != 2 {
+		logger.Error("keysKey Function: cmdName is not keys or cmd length is not 2")
 		return RESP.MakeErrorData(fmt.Sprintf("error: keys function get invalid command %s %s", string(cmd[0]), string(cmd[1])))
 	}
 	res := make([]RESP.RedisData, 0)
-	allKey := m.db.Keys()
+	allKeys := m.db.Keys()
 	pattern := string(cmd[1])
-	for _, key := range allKey {
+	for _, key := range allKeys {
 		if m.CheckTTL(key) {
 			if util.PatternMatch(pattern, key) {
 				res = append(res, RESP.MakeBulkData([]byte(key)))
 			}
 		}
-
 	}
 	return RESP.MakeArrayData(res)
 }

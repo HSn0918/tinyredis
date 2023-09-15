@@ -121,7 +121,7 @@ func (m *ConcurrentMap) Keys() []string {
 	keys := make([]string, m.count)
 	i := 0
 	for _, shard := range m.table {
-		shard.rwMu.Lock()
+		shard.rwMu.RLock()
 		for key := range shard.mp {
 			keys[i] = key
 			i++

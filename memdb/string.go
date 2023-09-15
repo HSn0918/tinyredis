@@ -13,6 +13,8 @@ import (
 func RegisterStringCommands() {
 	RegisterCommand("set", setString)
 	RegisterCommand("get", getString)
+	RegisterCommand("setrange", setRangeString)
+	RegisterCommand("getrange", getRangeString)
 }
 func setString(m *MemDb, cmd [][]byte) RESP.RedisData {
 	cmdName := string(cmd[0])
@@ -133,4 +135,91 @@ func getString(m *MemDb, cmd [][]byte) RESP.RedisData {
 		return RESP.MakeErrorData("WRONGTYPE Operation against a key holding the wrong kind of value")
 	}
 	return RESP.MakeBulkData(byteVal)
+}
+func setRangeString(m *MemDb, cmd [][]byte) RESP.RedisData {
+	if strings.ToLower(string(cmd[0])) != "setrange" {
+		logger.Error("setRangeString Function: cmdName is not setrange")
+		return RESP.MakeErrorData("server error")
+	}
+	if len(cmd) != 4 {
+		return RESP.MakeErrorData("error: commands is invalid")
+	}
+
+	offset, err := strconv.Atoi(string(cmd[2]))
+	if err != nil || offset < 0 {
+		return RESP.MakeErrorData("error: offset is not a integer or less than 0")
+	}
+	var oldVal []byte
+	var newVal []byte
+	key := string(cmd[1])
+	m.CheckTTL(key)
+	m.locks.Lock(key)
+	defer m.locks.UnLock(key)
+	val, ok := m.db.Get(key)
+	if !ok {
+		oldVal = make([]byte, 0)
+	} else {
+		oldVal, ok = val.([]byte)
+		if !ok {
+			return RESP.MakeErrorData("WRONGTYPE Operation against a key holding the wrong kind of value")
+		}
+	}
+	if offset > len(oldVal) {
+		newVal = oldVal
+		for i := 0; i < offset-len(oldVal); i++ {
+			newVal = append(newVal, byte(0))
+		}
+		newVal = append(newVal, cmd[3]...)
+	} else {
+		newVal = oldVal[:offset]
+		newVal = append(newVal, cmd[3]...)
+	}
+	m.db.Set(key, newVal)
+	return RESP.MakeIntData(int64(len(newVal)))
+}
+
+func getRangeString(m *MemDb, cmd [][]byte) RESP.RedisData {
+	if strings.ToLower(string(cmd[0])) != "getrange" {
+		logger.Error("getRangeString Function: cmdName is not getrange")
+		return RESP.MakeErrorData("Server error")
+	}
+	if len(cmd) != 4 {
+		return RESP.MakeErrorData("error: commands is not invalid")
+	}
+	key := string(cmd[1])
+	if !m.CheckTTL(key) {
+		return RESP.MakeNullBulkData()
+	}
+	m.locks.RLock(key)
+	defer m.locks.RUnLock(key)
+	val, ok := m.db.Get(key)
+	if !ok {
+		return RESP.MakeNullBulkData()
+	}
+	byteVal, ok := val.([]byte)
+	if !ok {
+		return RESP.MakeErrorData("WRONGTYPE Operation against a key holding the wrong kind of value")
+	}
+	start, err := strconv.Atoi(string(cmd[2]))
+	if err != nil {
+		return RESP.MakeErrorData("error: commands is invalid")
+	}
+	end, err := strconv.Atoi(string(cmd[3]))
+	if err != nil {
+		return RESP.MakeErrorData("error: commands is invalid")
+	}
+	if start < 0 {
+		start = len(byteVal) + start
+	}
+	if end < 0 {
+		end = len(byteVal) + end
+	}
+	end = end + 1
+	if start > end || start >= len(byteVal) || end < 0 {
+		return RESP.MakeBulkData([]byte{})
+	}
+	if start < 0 {
+		start = 0
+	}
+	return RESP.MakeBulkData(byteVal[start:end])
 }
