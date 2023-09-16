@@ -71,27 +71,29 @@ list
 AMD Ryzen 5 5600H with Redeon Graphics, 
 NVIDA Geforce RTX3050 laptop CPU 4GB, 
 16GB (3200MHX),
-Windows11
-`redis-benchmark -c 50 -n 200000 -t get`
-```text
-get: 24452.87 requests per second
-set: 25572.18 requests per second
-incr: 24055.81 requests per second
-lpush: 24218.94 requests per second
-rpush: 23245.00 requests per second
-lpop: 25371.05 requests per second
-rpop: 24654.83 requests per second
-sadd: 26766.60 requests per second
-hset: 24627.51 requests per second
-spop: 24018.25 requests per second
+Windows11 with Ubuntu 20.04.6 LTS(WSL2)
+`redis-benchmark -c 50-n 200000 -t get`
 
-lrange_100: 13980.15 requests per second
-lrange_300: 8432.06 requests per second
-lrange_500: 6283.97 requests per second
-lrange_600: 4649.32 requests per second
-mset: 21032.71 requests per second
+```text
+get: 146716.22 requests per second
+set: 153433.08 requests per second
+incr: 144334.86 requests per second
+lpush: 145313.64 requests per second
+rpush: 139470.00 requests per second
+lpop: 152226.30 requests per second
+rpop: 147929.08 requests per second
+sadd: 160599.60 requests per second
+hset: 147765.06 requests per second
+spop: 144109.50 requests per second
+
+lrange_100: 83880.90 requests per second
+lrange_300: 50652.36 requests per second
+lrange_500: 37703.82 requests per second
+lrange_600: 27895.92 requests per second
+
+mset: 126196.26 requests per second
 ```
-## Support Commands
+## 可用命令
 All commands used as [redis commands](https://redis.io/commands/). You can use any redis client to communicate with thinRedis.
 
 | key     | string      | list   | set         | hash         |
