@@ -14,6 +14,8 @@ func init() {
 	memdb.RegisterKeyCommand()
 	memdb.RegisterStringCommands()
 	memdb.RegisterHashCommands()
+	memdb.RegisterListCommands()
+	memdb.RegisterSetCommands()
 }
 func main() {
 	cfg, err := config.Setup()

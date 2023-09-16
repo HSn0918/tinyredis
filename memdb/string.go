@@ -234,7 +234,7 @@ func getRangeString(m *MemDb, cmd [][]byte) RESP.RedisData {
 	return RESP.MakeBulkData(byteVal[start:end])
 }
 func mSetString(m *MemDb, cmd [][]byte) RESP.RedisData {
-	if strings.ToLower(string(cmd[0])) != "mget" {
+	if strings.ToLower(string(cmd[0])) != "mset" {
 		logger.Error("mSetString Function: cmdName is not mset")
 		return RESP.MakeErrorData("Server error")
 	}
@@ -256,7 +256,7 @@ func mSetString(m *MemDb, cmd [][]byte) RESP.RedisData {
 	return RESP.MakeStringData("OK")
 }
 func mGetString(m *MemDb, cmd [][]byte) RESP.RedisData {
-	if strings.ToLower(string(cmd[0])) != "mset" {
+	if strings.ToLower(string(cmd[0])) != "mget" {
 		logger.Error("mGetString Function: cmdName is not mget")
 		return RESP.MakeErrorData("Server error")
 	}
