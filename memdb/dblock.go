@@ -81,7 +81,7 @@ func (l *Locks) LockMulti(keys []string) {
 		l.locks[pos].Lock()
 	}
 }
-func (l *Locks) UnlockMulti(keys []string) {
+func (l *Locks) UnLockMulti(keys []string) {
 	poses := l.sortedLockPoses(keys)
 	if poses == nil {
 		return

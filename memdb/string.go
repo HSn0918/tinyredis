@@ -248,7 +248,7 @@ func mSetString(m *MemDb, cmd [][]byte) RESP.RedisData {
 		vals = append(vals, cmd[i+1])
 	}
 	m.locks.LockMulti(keys)
-	defer m.locks.UnlockMulti(keys)
+	defer m.locks.UnLockMulti(keys)
 	for i := 0; i < len(keys); i++ {
 		m.DelTTL(keys[i])
 		m.db.Set(keys[i], vals[i])
