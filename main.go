@@ -13,6 +13,7 @@ import (
 func init() {
 	memdb.RegisterKeyCommand()
 	memdb.RegisterStringCommands()
+	memdb.RegisterHashCommands()
 }
 func main() {
 	cfg, err := config.Setup()

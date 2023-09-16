@@ -2,6 +2,7 @@ package memdb
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -96,11 +97,56 @@ func keysKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 	}
 	return RESP.MakeArrayData(res)
 }
-
-// todo:
 func expireKey(m *MemDb, cmd [][]byte) RESP.RedisData {
+	cmdName := string(cmd[0])
+	if strings.ToLower(cmdName) != "expire" || len(cmd) < 3 || len(cmd) > 4 {
+		logger.Error("expireKey Function: cmdName is not expire or command args number is invalid")
+		return RESP.MakeErrorData("error: cmdName is not expire or command args number is invalid")
+	}
 
-	return RESP.MakeNullBulkData()
+	v, err := strconv.ParseInt(string(cmd[2]), 10, 64)
+	if err != nil {
+		logger.Error("expireKey Function: cmd[2] %s is not int", string(cmd[2]))
+		return RESP.MakeErrorData(fmt.Sprintf("error: %s is not int", string(cmd[2])))
+	}
+	ttl := time.Now().Unix() + v
+	var opt string
+	if len(cmd) == 4 {
+		opt = strings.ToLower(string(cmd[3]))
+	}
+	key := string(cmd[1])
+	if !m.CheckTTL(key) {
+		return RESP.MakeIntData(int64(0))
+	}
+
+	m.locks.Lock(key)
+	defer m.locks.UnLock(key)
+	var res int
+	switch opt {
+	case "nx":
+		if _, ok := m.ttlKeys.Get(key); !ok {
+			res = m.SetTTL(key, ttl)
+		}
+	case "xx":
+		if _, ok := m.ttlKeys.Get(key); ok {
+			res = m.SetTTL(key, ttl)
+		}
+	case "gt":
+		if v, ok := m.ttlKeys.Get(key); ok && ttl > v.(int64) {
+			res = m.SetTTL(key, ttl)
+		}
+	case "lt":
+		if v, ok := m.ttlKeys.Get(key); ok && ttl < v.(int64) {
+			res = m.SetTTL(key, ttl)
+		}
+	default:
+		if opt != "" {
+			logger.Error("expireKey Function: opt %s is not nx, xx, gt or lt", opt)
+			return RESP.MakeErrorData(fmt.Sprintf("error: unsupport %s, except nx, xx, gt, lt", opt))
+		}
+		res = m.SetTTL(key, ttl)
+	}
+	return RESP.MakeIntData(int64(res))
 }
 func persistKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 	cmdName := string(cmd[0])
@@ -138,10 +184,35 @@ func ttlKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 
 }
 
-// todo:type
 func typeKey(m *MemDb, cmd [][]byte) RESP.RedisData {
-	return RESP.MakeNullBulkData()
-
+	cmdName := string(cmd[0])
+	if strings.ToLower(cmdName) != "type" || len(cmd) != 2 {
+		logger.Error("typeKey Function: cmdName is not type or command args number is invalid")
+		return RESP.MakeErrorData("error: cmdName is not type or command args number is invalid")
+	}
+	key := string(cmd[1])
+	if !m.CheckTTL(key) {
+		return RESP.MakeBulkData([]byte("none"))
+	}
+	m.locks.RLock(key)
+	defer m.locks.RUnLock(key)
+	v, ok := m.db.Get(key)
+	if !ok {
+		return RESP.MakeStringData("none")
+	}
+	switch v.(type) {
+	case []byte:
+		return RESP.MakeStringData("string")
+	case *List:
+		return RESP.MakeStringData("list")
+	case *Set:
+		return RESP.MakeStringData("set")
+	case *Hash:
+		return RESP.MakeStringData("hash")
+	default:
+		logger.Error("typeKey Function: type func error, not in string|list|set|hash")
+	}
+	return RESP.MakeErrorData("unknown error: server error")
 }
 func renameKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 	cmdName := string(cmd[0])
