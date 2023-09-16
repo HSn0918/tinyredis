@@ -11,12 +11,12 @@ func RegisterHashCommands() {
 	RegisterCommand("hdel", hDelHash)
 	RegisterCommand("hexists", hExistsHash)
 	RegisterCommand("hget", hGetHash)
-	//RegisterCommand("hgetall", hGetAllHash)
+	RegisterCommand("hgetall", hGetAllHash)
 	//RegisterCommand("hincrby", hIncrByHash)
 	//RegisterCommand("hincrbyfloat", hIncrByFloatHash)
 	//RegisterCommand("hkeys", hKeysHash)
 	RegisterCommand("hlen", hLenHash)
-	//RegisterCommand("hmget", hMGetHash)
+	RegisterCommand("hmget", hMGetHash)
 	RegisterCommand("hset", hSetHash)
 	//RegisterCommand("hsetnx", hSetNxHash)
 	//RegisterCommand("hvals", hValsHash)
@@ -109,6 +109,40 @@ func hGetHash(m *MemDb, cmd [][]byte) RESP.RedisData {
 	}
 	return RESP.MakeBulkData(res)
 }
+func hMGetHash(m *MemDb, cmd [][]byte) RESP.RedisData {
+	if strings.ToLower(string(cmd[0])) != "hmget" {
+		logger.Error("hMGetHash Function: cmdName is not hmget")
+		return RESP.MakeErrorData("Server error")
+	}
+	if len(cmd) < 3 {
+		return RESP.MakeErrorData("wrong number of arguments for 'hmget' command")
+	}
+	key := string(cmd[1])
+	if !m.CheckTTL(key) {
+		return RESP.MakeEmptyArrayData()
+	}
+	m.locks.RLock(key)
+	defer m.locks.RUnLock(key)
+	tem, ok := m.db.Get(key)
+	if !ok {
+		return RESP.MakeEmptyArrayData()
+	}
+	hash, ok := tem.(*Hash)
+	if !ok {
+		return RESP.MakeErrorData("WRONGTYPE Operation against a key holding the wrong kind of value")
+	}
+	res := make([]RESP.RedisData, 0, len(cmd)-2)
+	for i := 2; i < len(cmd); i++ {
+		field := string(cmd[i])
+		data := hash.Get(field)
+		if len(data) == 0 {
+			res = append(res, RESP.MakeBulkData(nil))
+		} else {
+			res = append(res, RESP.MakeBulkData(data))
+		}
+	}
+	return RESP.MakeArrayData(res)
+}
 func hDelHash(m *MemDb, cmd [][]byte) RESP.RedisData {
 	if strings.ToLower(string(cmd[0])) != "hdel" {
 		logger.Error("hDelHash Function: cmdName is not hdel")
@@ -170,4 +204,34 @@ func hExistsHash(m *MemDb, cmd [][]byte) RESP.RedisData {
 		return RESP.MakeIntData(1)
 	}
 	return RESP.MakeIntData(0)
+}
+func hGetAllHash(m *MemDb, cmd [][]byte) RESP.RedisData {
+	if strings.ToLower(string(cmd[0])) != "hget" {
+		logger.Error("hGetAllHash Function: cmdName is not hgetall")
+		return RESP.MakeErrorData("Server error")
+	}
+	if len(cmd) != 2 {
+		return RESP.MakeErrorData("wrong number of arguments for 'hgetall' command")
+	}
+	key := string(cmd[1])
+	if !m.CheckTTL(key) {
+		return RESP.MakeEmptyArrayData()
+	}
+	m.locks.RLock(key)
+	defer m.locks.RUnLock(key)
+	tem, ok := m.db.Get(key)
+	if !ok {
+		return RESP.MakeEmptyArrayData()
+	}
+	hash, ok := tem.(*Hash)
+	if !ok {
+		return RESP.MakeErrorData("WRONGTYPE Operation against a key holding the wrong kind of value")
+	}
+	table := hash.Table()
+
+	res := make([]RESP.RedisData, 0, len(table)*2)
+	for k, v := range table {
+		res = append(res, RESP.MakeBulkData([]byte(k)), RESP.MakeBulkData(v))
+	}
+	return RESP.MakeArrayData(res)
 }
