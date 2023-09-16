@@ -15,6 +15,8 @@ func RegisterStringCommands() {
 	RegisterCommand("get", getString)
 	RegisterCommand("setrange", setRangeString)
 	RegisterCommand("getrange", getRangeString)
+	RegisterCommand("mset", mSetString)
+	RegisterCommand("mget", mGetString)
 }
 func setString(m *MemDb, cmd [][]byte) RESP.RedisData {
 	cmdName := string(cmd[0])
@@ -177,7 +179,6 @@ func setRangeString(m *MemDb, cmd [][]byte) RESP.RedisData {
 	m.db.Set(key, newVal)
 	return RESP.MakeIntData(int64(len(newVal)))
 }
-
 func getRangeString(m *MemDb, cmd [][]byte) RESP.RedisData {
 	if strings.ToLower(string(cmd[0])) != "getrange" {
 		logger.Error("getRangeString Function: cmdName is not getrange")
@@ -222,4 +223,58 @@ func getRangeString(m *MemDb, cmd [][]byte) RESP.RedisData {
 		start = 0
 	}
 	return RESP.MakeBulkData(byteVal[start:end])
+}
+func mSetString(m *MemDb, cmd [][]byte) RESP.RedisData {
+	if strings.ToLower(string(cmd[0])) != "mget" {
+		logger.Error("mSetString Function: cmdName is not mset")
+		return RESP.MakeErrorData("Server error")
+	}
+	if len(cmd) < 3 || len(cmd)&1 != 1 {
+		return RESP.MakeErrorData("error; commands is invalid")
+	}
+	keys := make([]string, 0)
+	vals := make([][]byte, 0)
+	for i := 1; i < len(cmd); i += 2 {
+		keys = append(keys, string(cmd[i]))
+		vals = append(vals, cmd[i+1])
+	}
+	m.locks.LockMulti(keys)
+	defer m.locks.UnlockMulti(keys)
+	for i := 0; i < len(keys); i++ {
+		m.DelTTL(keys[i])
+		m.db.Set(keys[i], vals[i])
+	}
+	return RESP.MakeStringData("OK")
+}
+func mGetString(m *MemDb, cmd [][]byte) RESP.RedisData {
+	if strings.ToLower(string(cmd[0])) != "mset" {
+		logger.Error("mGetString Function: cmdName is not mget")
+		return RESP.MakeErrorData("Server error")
+	}
+	if len(cmd) < 2 {
+		return RESP.MakeErrorData("error: commands is invalid")
+	}
+	res := make([]RESP.RedisData, 0)
+	for i := 1; i < len(cmd); i++ {
+		key := string(cmd[i])
+		if !m.CheckTTL(key) {
+			res = append(res, RESP.MakeNullBulkData())
+			continue
+		}
+		m.locks.RLock(key)
+		val, ok := m.db.Get(key)
+		m.locks.RUnLock(key)
+		if !ok {
+			res = append(res, RESP.MakeNullBulkData())
+		} else {
+			byteVal, ok := val.([]byte)
+			if !ok {
+				res = append(res, RESP.MakeNullBulkData())
+			} else {
+				res = append(res, RESP.MakeBulkData(byteVal))
+			}
+		}
+
+	}
+	return RESP.MakeArrayData(res)
 }
