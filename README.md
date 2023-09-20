@@ -17,7 +17,7 @@ $ ./tiny-redis
 使用启动选项命令或配置文件来更改默认设置：
 ```bash 
 $ ./tiny-redis -h
-Usage of ./thinredis:
+Usage of ./tiny-redis:
   -config string
         Appoint a config file: such as /etc/redis.conf
   -host string
@@ -32,7 +32,7 @@ Usage of ./thinredis:
 ## 任何 Redis 客户端都可以与 tiny-redis 服务器通信。
 例如，可以使用 redis-cli 与 tiny-redis 服务器通信：
 ```bash
-# start a thinRedis server listening at 12345 port
+# start a tiny-redis server listening at 12345 port
 $ ./tiny-redis 
 [info][server.go:25] 2023/09/17 00:55:35 [Server Listen at 127.0.0.1:6379]
 [info][server.go:35] 2023/09/17 00:55:40 [127.0.0.1:7810  connected]
