@@ -7,6 +7,7 @@
 *完全内存存储。
 *支持一些需要的原子操作命令（如 INCR、DECR、INCRBY、MSET、SMOVE 等）。
 ## 使用
+go1.20+ 
 ```bash
 $ go build -o tiny-redis main.go
 ```
