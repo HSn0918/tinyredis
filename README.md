@@ -114,3 +114,65 @@ All commands used as [redis commands](https://redis.io/commands/). You can use a
 |      | decrby      | lrange | sunion      | hstrlen      |
 |      | incrbyfloat | lmove  | sunionstore | hrandfield   |
 |      | append      |        |             |              |
+## 文件目录
+
+### 一级目录
+
+```go
+|-- README.md
+|-- RESP//RESP协议数据类型和解析RESP函数
+|-- config//配置
+|-- go.mod
+|-- logger//日志
+|-- main.go
+|-- memdb//数据库数据类型
+|-- server//服务端
+`-- util
+```
+
+### 二级目录
+
+```go
+|-- README.md
+|-- RESP
+|   |-- arraydata.go
+|   |-- bulkdata.go
+|   |-- errordata.go
+|   |-- intdata.go
+|   |-- parser_test.go
+|   |-- parsestream.go
+|   |-- plaindata.go
+|   |-- stringdata.go
+|   `-- structure.go//解析RESP协议
+|-- config
+|   `-- config.go
+|-- go.mod
+|-- logger
+|   |-- level.go
+|   `-- logger.go
+|-- main.go
+|-- memdb
+|   |-- command.go//方法注册函数
+|   |-- concurrentmap.go//ConcurrentMap
+|   |-- db.go//内存数据库
+|   |-- dblock.go//锁
+|   |-- hash.go
+|   |-- hash_struct.go
+|   |-- keys.go
+|   |-- keys_test.go
+|   |-- list.go
+|   |-- list_struct.go
+|   |-- list_test.go
+|   |-- set.go
+|   |-- set_struct.go
+|   |-- string.go
+|   |-- string_test.go
+|   |-- zset.go
+|   `-- zset_struct.go
+|-- server
+|   |-- handler.go//监听端口
+|   `-- server.go//启动服务
+`-- util
+    `-- util.go//hash函数和正则实现
+```
+

@@ -37,7 +37,6 @@ func ParseStream(reader io.Reader) <-chan *ParsedRes {
 // IntReply::123456\r\n
 // BulkReply:$11\r\nhello world\r\n
 // ArrayReply:*3\r\n$3\r\nSET\r\n$3\r\nkey\r\n$5\r\nvalue\r\n
-
 func parse(reader io.Reader, ch chan<- *ParsedRes) {
 	bufReader := bufio.NewReader(reader)
 	state := new(readState)
