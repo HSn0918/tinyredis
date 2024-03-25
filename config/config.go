@@ -13,7 +13,7 @@ import (
 
 var Configures *Config
 var (
-	defaultHost     = "127.0.0.1"
+	defaultHost     = "0.0.0.0"
 	defaultPort     = 6379
 	defaultLogDir   = "./"
 	defaultLogLevel = "info"
