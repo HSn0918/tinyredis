@@ -6,7 +6,26 @@
 *支持 TTL（键-值对将在 TTL 后被删除）。
 *完全内存存储。
 *支持一些需要的原子操作命令（如 INCR、DECR、INCRBY、MSET、SMOVE 等）。
-## 使用
+
+## 使用 Docker 快速开始
+
+### 构建 Docker 镜像
+~~~
+$ git clone https://github.com/HSn0918/tinyredis
+$ cd tinyredis
+$ docker build -t tiny-redis:0.1 .
+~~~
+
+### 启动
+~~~
+$ docker run -d \
+  --name tiny-redis \
+  -p 6379:6379 \
+  -v tinyredis-data:/data\
+  tiny-redis:0.1
+~~~
+
+## 从源码构建
 go1.20+ 
 ```bash
 $ go build -o tiny-redis main.go
