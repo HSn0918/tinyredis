@@ -10,14 +10,20 @@
 ## 使用 Docker 快速开始
 
 ### 构建 Docker 镜像
-~~~
+
+~~~shell
 $ git clone https://github.com/HSn0918/tinyredis
 $ cd tinyredis
 $ docker build -t tiny-redis:0.1 .
 ~~~
 
 ### 启动
-~~~
+
+值得注意的是，我们已经在 `/data` 目录为你准备好了 `redis-cli` 命令行工具方便你调试使用。
+
+由于项目未做数据持久化，所以即使你挂载了 `/data` 目录也只能得到一些日志文件，以及 `tiny-redis`，`redis-cli`。
+
+~~~shell
 $ docker run -d \
   --name tiny-redis \
   -p 6379:6379 \
