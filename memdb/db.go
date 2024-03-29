@@ -1,13 +1,13 @@
 package memdb
 
 import (
+	"github.com/hsn/tiny-redis/config"
 	"strings"
 	"time"
 
 	"github.com/hsn/tiny-redis/logger"
 
 	"github.com/hsn/tiny-redis/RESP"
-	"github.com/hsn/tiny-redis/config"
 )
 
 // MemDb is the memory cache database
