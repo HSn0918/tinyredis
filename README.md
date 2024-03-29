@@ -56,6 +56,8 @@ Usage of ./tiny-redis:
         Bind a listening port: default is 6379 (default 6379)
 ```
 ## 任何 Redis 客户端都可以与 tiny-redis 服务器通信。
+>目前支持图形化客户端:Medis、AnotherRedisDesktopManager。然而需要注意的是，这些客户端中显示的关于服务端的信息可能并不是准确的
+
 例如，可以使用 redis-cli 与 tiny-redis 服务器通信：
 ```bash
 # start a tiny-redis server listening at 12345 port
@@ -89,6 +91,7 @@ list
 (integer) 1
 127.0.0.1:6379> TTL list1
 (integer) -1
+
 
 ```
 ## 性能基准测试
