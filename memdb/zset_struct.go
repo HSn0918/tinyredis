@@ -1,6 +1,9 @@
 package memdb
 
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+)
 
 type zSetNode struct {
 	member  string
@@ -10,19 +13,37 @@ type zSetNode struct {
 type ZSet struct {
 	header *zSetNode
 	level  int
+	length int
+}
+
+func (z *ZSet) String() string {
+	var result string
+	for i := z.level - 1; i >= 0; i-- {
+		result += fmt.Sprintf("Level %d: ", i+1)
+		current := z.header.forward[i]
+		for current != nil {
+			result += fmt.Sprintf("%s(%f) ", current.member, current.score)
+			current = current.forward[i]
+		}
+		result += "\n"
+	}
+	return result
 }
 
 const MaxLevel = 32
 
-func NewZSetNode() *zSetNode {
+func NewZSetNode(level int, member string, score float64) *zSetNode {
 	return &zSetNode{
-		forward: make([]*zSetNode, MaxLevel),
+		member:  member,
+		score:   score,
+		forward: make([]*zSetNode, level),
 	}
 }
 func NewZSet() *ZSet {
 	return &ZSet{
-		header: NewZSetNode(),
+		header: NewZSetNode(MaxLevel, "", 0),
 		level:  1,
+		length: 0, // 初始化长度为 0
 	}
 }
 func randomLevel() int {
@@ -32,11 +53,47 @@ func randomLevel() int {
 	}
 	return level
 }
+
 func (z *ZSet) Add(member string, score float64) {
 	update := make([]*zSetNode, MaxLevel)
 	current := z.header
+	for i := z.level - 1; i >= 0; i-- {
+		for current.forward[i] != nil && current.forward[i].score < score {
+			current = current.forward[i]
+		}
+		update[i] = current
+	}
+	newLevel := randomLevel()
+	if newLevel > z.level {
+		for i := z.level; i < newLevel; i++ {
+			update[i] = z.header
+		}
+		z.level = newLevel
+	}
+	newNode := NewZSetNode(newLevel, member, score)
+	for i := 0; i < newLevel; i++ {
+		newNode.forward[i] = update[i].forward[i]
+		update[i].forward[i] = newNode
+	}
+	z.length++
+}
+func (z *ZSet) Get(member string) float64 {
+	current := z.header
+	for i := z.level - 1; i >= 0; i-- {
+		for current.forward[i] != nil && current.forward[i].member < member {
+			current = current.forward[i]
+		}
+	}
+	current = current.forward[0]
+	if current != nil && current.member == member {
+		return current.score
+	}
+	return -1
+}
+func (z *ZSet) Remove(member string, score float64) bool {
+	update := make([]*zSetNode, MaxLevel)
+	current := z.header
 
-	// Traverse the skip list and keep track of the update pointers
 	for i := z.level - 1; i >= 0; i-- {
 		for current.forward[i] != nil && current.forward[i].score < score {
 			current = current.forward[i]
@@ -44,26 +101,27 @@ func (z *ZSet) Add(member string, score float64) {
 		update[i] = current
 	}
 
-	// Generate a random level for the new node
-	newLevel := randomLevel()
+	current = current.forward[0]
 
-	// If the new level is greater than the current level of the skip list,
-	// update the update pointers and set the new level for the skip list
-	if newLevel > z.level {
-		for i := z.level; i < newLevel; i++ {
-			update[i] = z.header
+	if current != nil && current.score == score && current.member == member {
+		for i := 0; i < z.level; i++ {
+			if update[i].forward[i] != current {
+				break
+			}
+			update[i].forward[i] = current.forward[i]
 		}
-		z.level = newLevel
+
+		for z.level > 1 && z.header.forward[z.level-1] == nil {
+			z.level--
+		}
+
+		z.length--
+		return true
 	}
 
-	// Create a new node with the given member and score
-	newNode := NewZSetNode()
-	newNode.member = member
-	newNode.score = score
+	return false
+}
 
-	// Insert the new node into the skip list
-	for i := 0; i < newLevel; i++ {
-		newNode.forward[i] = update[i].forward[i]
-		update[i].forward[i] = newNode
-	}
+func (z *ZSet) Len() int {
+	return z.length
 }
