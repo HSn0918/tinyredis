@@ -2,21 +2,27 @@ package config
 
 import (
 	"bufio"
-	"flag"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 var Configures *Config
+
+func init() {
+
+}
+
 var (
-	defaultHost     = "0.0.0.0"
-	defaultPort     = 6379
-	defaultLogDir   = "./"
-	defaultLogLevel = "info"
+	DefaultHost     = "0.0.0.0"
+	DefaultPort     = 6379
+	DefaultLogDir   = "./"
+	DefaultLogLevel = "info"
 	defaultShardNum = 1024
 )
 
@@ -35,25 +41,19 @@ type CfgError struct {
 func (err *CfgError) Error() string {
 	return err.message
 }
-func flagInit(cfg *Config) {
-	flag.StringVar(&(cfg.ConfFile), "config", "", "Appoint a config file: such as /etc/redis.conf")
-	flag.StringVar(&(cfg.Host), "host", defaultHost, "Bind host ip: default is 127.0.0.1")
-	flag.IntVar(&(cfg.Port), "port", defaultPort, "Bind a listening port: default is 6379")
-	flag.StringVar(&(cfg.LogDir), "logdir", defaultLogDir, "Set log directory: default is /tmp")
-	flag.StringVar(&(cfg.LogLevel), "loglevel", defaultLogLevel, "Set log level.go: default is info")
-}
-func Setup() (*Config, error) {
 
+func Setup(cmd *cobra.Command) (*Config, error) {
 	cfg := &Config{
-		Host:     defaultHost,
-		Port:     defaultPort,
-		LogDir:   defaultLogDir,
-		LogLevel: defaultLogLevel,
+		Host:     DefaultHost,
+		Port:     DefaultPort,
+		LogDir:   DefaultLogDir,
+		LogLevel: DefaultLogLevel,
 		ShardNum: defaultShardNum,
 	}
+	if err := cmd.ParseFlags(os.Args[1:]); err != nil {
+		return nil, err
+	}
 
-	flagInit(cfg)
-	flag.Parse()
 	if cfg.ConfFile != "" {
 		if err := cfg.Parse(cfg.ConfFile); err != nil {
 			return nil, err
@@ -67,7 +67,7 @@ func Setup() (*Config, error) {
 		}
 		if cfg.Port <= 1024 || cfg.Port >= 65535 {
 			portErr := &CfgError{
-				message: fmt.Sprintf("Listening port should between 1024 and 65535, but %d is given.", cfg.Port),
+				message: fmt.Sprintf("Listening port should be between 1024 and 65535, but %d is given.", cfg.Port),
 			}
 			return nil, portErr
 		}
@@ -118,7 +118,7 @@ func (cfg *Config) Parse(cfgFile string) error {
 				}
 				if port <= 1024 || port >= 65535 {
 					portErr := &CfgError{
-						message: fmt.Sprintf("Listening port should between 1024 and 65535, but %d is given.", port),
+						message: fmt.Sprintf("Listening port should be between 1024 and 65535, but %d is given.", port),
 					}
 					return portErr
 				}
@@ -140,4 +140,14 @@ func (cfg *Config) Parse(cfgFile string) error {
 		}
 	}
 	return nil
+}
+
+func NewDefaultConfig() *Config {
+	return &Config{
+		Host:     DefaultHost,
+		Port:     DefaultPort,
+		LogDir:   DefaultLogDir,
+		LogLevel: DefaultLogLevel,
+		ShardNum: defaultShardNum,
+	}
 }
