@@ -34,7 +34,7 @@ $ docker run -d \
 ## 从源码构建
 go1.20+ 
 ```bash
-$ go build -o tiny-redis main.go
+$ go build -o tiny-redis 
 ```
 启动tiny-redis服务:
 ```bash
@@ -43,27 +43,52 @@ $ ./tiny-redis
 使用启动选项命令或配置文件来更改默认设置：
 ```bash 
 $ ./tiny-redis -h
-Usage of ./tiny-redis:
-  -config string
-        Appoint a config file: such as /etc/redis.conf
-  -host string
-        Bind host ip: default is 127.0.0.1 (default "127.0.0.1")
-  -logdir string
-        Set log directory: default is /tmp (default "./")
-  -loglevel string
-        Set log level: default is info (default "info")
-  -port int
-        Bind a listening port: default is 6379 (default 6379)
+A tiny Redis server
+
+Usage:
+  tiny-redis [flags]
+  tiny-redis [command]
+
+Available Commands:
+  completion  Generate completion script
+  help        Help about any command
+
+Flags:
+  -c, --config string     Appoint a config file: such as /etc/redis.conf
+  -h, --help              help for tiny-redis
+  -H, --host string       Bind host ip: default is 127.0.0.1 (default "0.0.0.0")
+  -d, --logdir string     Set log directory: default is /tmp (default "./")
+  -l, --loglevel string   Set log level: default is info (default "info")
+  -p, --port int          Bind a listening port: default is 6379 (default 6379)
+
+Use "tiny-redis [command] --help" for more information about a command.
 ```
+使用cobra提供的自动补全功能(当前会话生效)
+
+```sh
+$ ./tiny-redis completion zsh > _tiny-redis_completion
+$ source _tiny-redis_completion
+```
+
+
+
 ## 任何 Redis 客户端都可以与 tiny-redis 服务器通信。
+
 >目前支持图形化客户端:Medis、AnotherRedisDesktopManager。然而需要注意的是，这些客户端中显示的关于服务端的信息可能并不是准确的
 
 例如，可以使用 redis-cli 与 tiny-redis 服务器通信：
-```bash
-# start a tiny-redis server listening at 12345 port
+
+```sh
+# start a tiny-redis server listening at 6379 port
 $ ./tiny-redis 
 [info][server.go:25] 2023/09/17 00:55:35 [Server Listen at 127.0.0.1:6379]
 [info][server.go:35] 2023/09/17 00:55:40 [127.0.0.1:7810  connected]
+```
+
+
+
+```bash
+# use redis-cli
 $ redis-cli
 127.0.0.1:6379> PING
 PONG
