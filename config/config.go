@@ -50,27 +50,21 @@ func Setup(cmd *cobra.Command) (*Config, error) {
 		LogLevel: DefaultLogLevel,
 		ShardNum: defaultShardNum,
 	}
-	if err := cmd.ParseFlags(os.Args[1:]); err != nil {
+	var err error
+	if err = cmd.ParseFlags(os.Args[1:]); err != nil {
 		return nil, err
 	}
-
-	if cfg.ConfFile != "" {
-		if err := cfg.Parse(cfg.ConfFile); err != nil {
-			return nil, err
-		}
-	} else {
-		if ip := net.ParseIP(cfg.Host); ip == nil {
-			ipErr := &CfgError{
-				message: fmt.Sprintf("Given ip address %s is invalid", cfg.Host),
-			}
-			return nil, ipErr
-		}
-		if cfg.Port <= 1024 || cfg.Port >= 65535 {
-			portErr := &CfgError{
-				message: fmt.Sprintf("Listening port should be between 1024 and 65535, but %d is given.", cfg.Port),
-			}
-			return nil, portErr
-		}
+	if cfg.Host, err = cmd.Flags().GetString("host"); err != nil {
+		return nil, fmt.Errorf("failed to parse host flag: %w", err)
+	}
+	if cfg.Port, err = cmd.Flags().GetInt("port"); err != nil {
+		return nil, fmt.Errorf("failed to parse port flag: %w", err)
+	}
+	if cfg.LogDir, err = cmd.Flags().GetString("logdir"); err != nil {
+		return nil, fmt.Errorf("failed to parse logdir flag: %w", err)
+	}
+	if cfg.LogLevel, err = cmd.Flags().GetString("loglevel"); err != nil {
+		return nil, fmt.Errorf("failed to parse loglevel flag: %w", err)
 	}
 	Configures = cfg
 	return cfg, nil
