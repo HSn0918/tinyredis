@@ -1,8 +1,10 @@
 package memdb
 
-import (
-	"fmt"
-	"math/rand"
+import "math/rand/v2"
+
+const (
+	MaxLevel    = 32
+	Probability = 0.25
 )
 
 type zSetNode struct {
@@ -16,22 +18,6 @@ type ZSet struct {
 	length int
 }
 
-func (z *ZSet) String() string {
-	var result string
-	for i := z.level - 1; i >= 0; i-- {
-		result += fmt.Sprintf("Level %d: ", i+1)
-		current := z.header.forward[i]
-		for current != nil {
-			result += fmt.Sprintf("%s(%f) ", current.member, current.score)
-			current = current.forward[i]
-		}
-		result += "\n"
-	}
-	return result
-}
-
-const MaxLevel = 32
-
 func NewZSetNode(level int, member string, score float64) *zSetNode {
 	return &zSetNode{
 		member:  member,
@@ -39,6 +25,7 @@ func NewZSetNode(level int, member string, score float64) *zSetNode {
 		forward: make([]*zSetNode, level),
 	}
 }
+
 func NewZSet() *ZSet {
 	return &ZSet{
 		header: NewZSetNode(MaxLevel, "", 0),
@@ -46,14 +33,15 @@ func NewZSet() *ZSet {
 		length: 0, // 初始化长度为 0
 	}
 }
+
+// randomLevel generates a random level for a new node.
 func randomLevel() int {
 	level := 1
-	for rand.Float64() < 0.25 && level < MaxLevel {
+	for rand.Float64() < Probability && level < MaxLevel {
 		level++
 	}
 	return level
 }
-
 func (z *ZSet) Add(member string, score float64) {
 	update := make([]*zSetNode, MaxLevel)
 	current := z.header
