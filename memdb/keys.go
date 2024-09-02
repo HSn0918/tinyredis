@@ -209,6 +209,9 @@ func typeKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 		return RESP.MakeStringData("set")
 	case *Hash:
 		return RESP.MakeStringData("hash")
+	case *ZSet:
+		return RESP.MakeStringData("zset")
+
 	default:
 		logger.Error("typeKey Function: type func error, not in string|list|set|hash")
 	}
