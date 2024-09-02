@@ -23,7 +23,7 @@ var (
 	DefaultPort     = 6379
 	DefaultLogDir   = "./"
 	DefaultLogLevel = "info"
-	defaultShardNum = 1024
+	DefaultShardNum = 1024
 )
 
 type Config struct {
@@ -48,7 +48,7 @@ func Setup(cmd *cobra.Command) (*Config, error) {
 		Port:     DefaultPort,
 		LogDir:   DefaultLogDir,
 		LogLevel: DefaultLogLevel,
-		ShardNum: defaultShardNum,
+		ShardNum: DefaultShardNum,
 	}
 	var err error
 	if err = cmd.ParseFlags(os.Args[1:]); err != nil {
@@ -65,6 +65,9 @@ func Setup(cmd *cobra.Command) (*Config, error) {
 	}
 	if cfg.LogLevel, err = cmd.Flags().GetString("loglevel"); err != nil {
 		return nil, fmt.Errorf("failed to parse loglevel flag: %w", err)
+	}
+	if cfg.ShardNum, err = cmd.Flags().GetInt("shardnum"); err != nil {
+		return nil, fmt.Errorf("failed to parse shardnum flag: %w", err)
 	}
 	Configures = cfg
 	return cfg, nil
@@ -142,6 +145,6 @@ func NewDefaultConfig() *Config {
 		Port:     DefaultPort,
 		LogDir:   DefaultLogDir,
 		LogLevel: DefaultLogLevel,
-		ShardNum: defaultShardNum,
+		ShardNum: DefaultShardNum,
 	}
 }

@@ -1,13 +1,16 @@
 package util
 
-import "hash/fnv"
+import "github.com/spaolacci/murmur3"
 
-// HashKey hash a string to an int value using fnv32 algorithm
+// HashKey hashes a string to an int value using MurmurHash3 algorithm
 func HashKey(key string) int {
-	fnv32 := fnv.New32()
+	// Optional: Use a salt to make the key more unique, if needed
 	key = "@#&" + key + "*^%$"
-	_, _ = fnv32.Write([]byte(key))
-	return int(fnv32.Sum32())
+	// Generate a 64-bit hash using MurmurHash3
+	hash := murmur3.Sum64([]byte(key))
+	// Convert to int and return
+	return int(hash)
+
 }
 
 // PatternMatch matches a string with a wildcard pattern.

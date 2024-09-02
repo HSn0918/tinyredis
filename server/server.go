@@ -36,6 +36,11 @@ func Start(cfg *config.Config) error {
 		sg.Add(1)
 		go func() {
 			defer sg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Panic("Recovered from panic in connection handler: ", r)
+				}
+			}()
 			handler.Handle(conn)
 		}()
 

@@ -62,7 +62,7 @@ func delKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 }
 func existsKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 	cmdName := string(cmd[0])
-	if strings.ToLower(cmdName) != "exist" || len(cmd) < 2 {
+	if strings.ToLower(cmdName) != "exists" || len(cmd) < 2 {
 		logger.Error("existsKey Function: cmdName is not exists")
 		return RESP.MakeErrorData("protocol error: command is not exists")
 	}
@@ -81,13 +81,19 @@ func existsKey(m *MemDb, cmd [][]byte) RESP.RedisData {
 	return RESP.MakeIntData(int64(eKeyCount))
 }
 func keysKey(m *MemDb, cmd [][]byte) RESP.RedisData {
-	if strings.ToLower(string(cmd[0])) != "keys" || len(cmd) != 2 {
-		logger.Error("keysKey Function: cmdName is not keys or cmd length is not 2")
-		return RESP.MakeErrorData(fmt.Sprintf("error: keys function get invalid command %s %s", string(cmd[0]), string(cmd[1])))
+	if len(cmd) != 2 {
+		logger.Error("keysKey Function: cmd length is not 2")
+		return RESP.MakeErrorData(fmt.Sprintf("error: keys function requires exactly 2 arguments, got %d", len(cmd)))
 	}
+	if strings.ToLower(string(cmd[0])) != "keys" {
+		logger.Error("keysKey Function: cmdName is not 'keys'")
+		return RESP.MakeErrorData(fmt.Sprintf("error: keys function got invalid command %s", string(cmd[0])))
+	}
+
 	res := make([]RESP.RedisData, 0)
 	allKeys := m.db.Keys()
 	pattern := string(cmd[1])
+
 	for _, key := range allKeys {
 		if m.CheckTTL(key) {
 			if util.PatternMatch(pattern, key) {
