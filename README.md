@@ -1,5 +1,6 @@
 # tiny-redis
-
+[中文](./README_CN.md)
+[EN](./README.md)
 ## Introduction
 
 `tiny-redis` is a high-performance, standalone cache server written in Go that supports persistence. It fully implements the RESP (Redis Serialization Protocol), making it compatible with any Redis client.

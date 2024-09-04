@@ -1,4 +1,6 @@
 # tiny-redis
+[中文](./README_CN.md)
+[EN](./README.md)
 ## tiny-redis 是一个由 Go 编写的高性能独立缓存服务器(持久化)。它实现了完整的 RESP（Redis 序列化协议），因此支持所有的 Redis 客户端。
 ## 特点
 *支持基于 RESP 协议的所有客户端。
