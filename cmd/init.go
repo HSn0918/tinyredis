@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/hsn/tiny-redis/config"
-	"github.com/hsn/tiny-redis/logger"
-	"github.com/hsn/tiny-redis/memdb"
-	"github.com/hsn/tiny-redis/server"
+	"github.com/hsn/tiny-redis/pkg/config"
+	"github.com/hsn/tiny-redis/pkg/logger"
+	"github.com/hsn/tiny-redis/pkg/memdb"
+	"github.com/hsn/tiny-redis/pkg/server"
 	"github.com/spf13/cobra"
 	"os"
 )
