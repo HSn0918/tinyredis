@@ -1,12 +1,11 @@
 package server
 
 import (
-	RESP2 "github.com/hsn/tiny-redis/pkg/RESP"
+	"github.com/hsn/tiny-redis/pkg/RESP"
 	"github.com/hsn/tiny-redis/pkg/logger"
+	"github.com/hsn/tiny-redis/pkg/memdb"
 	"io"
 	"net"
-
-	"github.com/hsn/tiny-redis/memdb"
 )
 
 type Handler struct {
@@ -23,7 +22,7 @@ func (h *Handler) Handle(conn net.Conn) {
 			logger.Error(err)
 		}
 	}()
-	ch := RESP2.ParseStream(conn)
+	ch := RESP.ParseStream(conn)
 	for parsedRes := range ch {
 		if parsedRes.Err != nil {
 			if parsedRes.Err == io.EOF {
@@ -36,7 +35,7 @@ func (h *Handler) Handle(conn net.Conn) {
 		if parsedRes.Data == nil {
 			logger.Error("empty parsedRes.Data from ", conn.RemoteAddr().String())
 		}
-		arrayData, ok := parsedRes.Data.(*RESP2.ArrayData)
+		arrayData, ok := parsedRes.Data.(*RESP.ArrayData)
 		if !ok {
 			logger.Error("parsedRes.Data is not ArrayData from ", conn.RemoteAddr().String())
 			continue
@@ -49,7 +48,7 @@ func (h *Handler) Handle(conn net.Conn) {
 				logger.Error("writer response to ", conn.RemoteAddr().String(), " error: ", err.Error())
 			}
 		} else {
-			errData := RESP2.MakeErrorData("unknown error")
+			errData := RESP.MakeErrorData("unknown error")
 			_, err := conn.Write(errData.ToBytes())
 			if err != nil {
 				logger.Error("writer response to ", conn.RemoteAddr().String(), " error: ", err.Error())
