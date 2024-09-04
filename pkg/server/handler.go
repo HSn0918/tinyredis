@@ -9,12 +9,23 @@ import (
 )
 
 type Handler struct {
-	memDb *memdb.MemDb
+	memDb   *memdb.MemDb
+	aofChan chan []byte   // Channel for AOF logging
+	stopCh  chan struct{} // Channel to signal shutdown
 }
 
 func NewHandler() *Handler {
-	return &Handler{memDb: memdb.NewMemDb()}
+	handler := &Handler{
+		memDb:   memdb.NewMemDb(),
+		aofChan: make(chan []byte, 100), // Buffer AOF commands
+		stopCh:  make(chan struct{}),
+	}
+	handler.loadAOF(aofPath)
+	go handler.aofLogger(aofPath)
+	// 启动信号捕获协程，监听系统终止信号
+	return handler
 }
+
 func (h *Handler) Handle(conn net.Conn) {
 	defer func() {
 		err := conn.Close()
@@ -53,6 +64,10 @@ func (h *Handler) Handle(conn net.Conn) {
 			if err != nil {
 				logger.Error("writer response to ", conn.RemoteAddr().String(), " error: ", err.Error())
 			}
+		}
+		// Log write commands to AOF
+		if IsWriteCommand(cmd) {
+			h.aofChan <- arrayData.ToBytes() // Send the command to the AOF channel
 		}
 	}
 }
