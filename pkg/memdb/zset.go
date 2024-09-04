@@ -1,7 +1,7 @@
 package memdb
 
 import (
-	RESP2 "github.com/hsn/tiny-redis/pkg/RESP"
+	"github.com/hsn/tiny-redis/pkg/RESP"
 	"github.com/hsn/tiny-redis/pkg/logger"
 	"strconv"
 	"strings"
@@ -12,13 +12,13 @@ func RegisterZSetCommands() {
 
 }
 
-func zAddZset(m *MemDb, cmd [][]byte) RESP2.RedisData {
+func zAddZset(m *MemDb, cmd [][]byte) RESP.RedisData {
 	if strings.ToLower(string(cmd[0])) != "zadd" {
 		logger.Error("zAddZset Function: cmdName is not zadd")
 		return nil
 	}
 	if len(cmd) < 3 && len(cmd)%2 != 0 {
-		return RESP2.MakeErrorData("wrong number of arguments for 'zadd' command")
+		return RESP.MakeErrorData("wrong number of arguments for 'zadd' command")
 	}
 	key := string(cmd[1])
 	m.CheckTTL(key)
@@ -31,17 +31,17 @@ func zAddZset(m *MemDb, cmd [][]byte) RESP2.RedisData {
 	}
 	zset, ok := temp.(*ZSet)
 	if !ok {
-		return RESP2.MakeErrorData("WRONGTYPE Operation against a key holding the wrong kind of value")
+		return RESP.MakeErrorData("WRONGTYPE Operation against a key holding the wrong kind of value")
 	}
 	res := 0
 	for i := 2; i < len(cmd); i += 2 {
 		member := string(cmd[i+1])
 		score, err := strconv.ParseFloat(string(cmd[i]), 64)
 		if err != nil {
-			return RESP2.MakeErrorData("ERR value is not a valid float")
+			return RESP.MakeErrorData("ERR value is not a valid float")
 		}
 		zset.Add(member, score)
 		res++
 	}
-	return RESP2.MakeIntData(int64(res))
+	return RESP.MakeIntData(int64(res))
 }

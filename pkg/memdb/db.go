@@ -1,7 +1,7 @@
 package memdb
 
 import (
-	RESP2 "github.com/hsn/tiny-redis/pkg/RESP"
+	"github.com/hsn/tiny-redis/pkg/RESP"
 	"github.com/hsn/tiny-redis/pkg/config"
 	"github.com/hsn/tiny-redis/pkg/logger"
 	"strings"
@@ -25,15 +25,15 @@ func NewMemDb() *MemDb {
 		locks:   NewLocks(config.Configures.ShardNum * 2),
 	}
 }
-func (m *MemDb) ExecCommand(cmd [][]byte) RESP2.RedisData {
+func (m *MemDb) ExecCommand(cmd [][]byte) RESP.RedisData {
 	if len(cmd) == 0 {
 		return nil
 	}
-	var res RESP2.RedisData
+	var res RESP.RedisData
 	cmdName := strings.ToLower(string(cmd[0]))
 	command, ok := CmdTable[cmdName]
 	if !ok {
-		res = RESP2.MakeErrorData("error: unsupported command")
+		res = RESP.MakeErrorData("error: unsupported command")
 	} else {
 		execFunc := command.executor
 		res = execFunc(m, cmd)
