@@ -43,22 +43,19 @@ docker-stop:
 completion:
 	@echo "==> Generating completion scripts..."
 	@mkdir -p $(COMPLETION_DIR)
-	@if [ "$(SHELL)" = "/bin/zsh" ] || [ "$(SHELL)" = "/usr/bin/zsh" ]; then \
+	@if [ "$$0" = "-zsh" ] || [ "$$SHELL" = "/bin/zsh" ] || [ "$$SHELL" = "/usr/bin/zsh" ]; then \
 		echo "Detected zsh shell"; \
 		./$(BINARY_NAME) completion zsh > $(COMPLETION_DIR)/zsh_completion.sh; \
-		echo "source $(COMPLETION_DIR)/zsh_completion.sh"; \
-		source $(COMPLETION_DIR)/zsh_completion.sh; \
-		echo "Zsh completion loaded"; \
-	elif [ "$(SHELL)" = "/bin/bash" ] || [ "$(SHELL)" = "/usr/bin/bash" ]; then \
+		echo "Completion script for Zsh has been generated at $(COMPLETION_DIR)/zsh_completion.sh"; \
+		echo "To load it, run: source $(COMPLETION_DIR)/zsh_completion.sh"; \
+	elif [ "$$0" = "-bash" ] || [ "$$SHELL" = "/bin/bash" ] || [ "$$SHELL" = "/usr/bin/bash" ]; then \
 		echo "Detected bash shell"; \
 		./$(BINARY_NAME) completion bash > $(COMPLETION_DIR)/bash_completion.sh; \
-		echo "source $(COMPLETION_DIR)/bash_completion.sh"; \
-		source $(COMPLETION_DIR)/bash_completion.sh; \
-		echo "Bash completion loaded"; \
+		echo "Completion script for Bash has been generated at $(COMPLETION_DIR)/bash_completion.sh"; \
+		echo "To load it, run: source $(COMPLETION_DIR)/bash_completion.sh"; \
 	else \
 		echo "Unsupported shell. Please use bash or zsh."; \
 	fi
-
 # 运行应用程序
 run:
 	@echo "==> Running application..."
