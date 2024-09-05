@@ -9,7 +9,7 @@ WORKDIR /build
 
 COPY . .
 
-RUN go mod tidy && go build -o /build/tiny-redis main.go
+RUN go mod tidy && go build -o ./tiny-redis main.go
 RUN go get github.com/holys/redis-cli && go install github.com/holys/redis-cli
 
 
@@ -24,11 +24,11 @@ RUN apk add --no-cache ca-certificates tzdata && \
     update-ca-certificates
 
 VOLUME /data
-WORKDIR /data
+WORKDIR /app
 
-COPY --from=builder /build/tiny-redis /data/tiny-redis
-COPY --from=builder /go/bin/redis-cli /data/redis-cli
+COPY --from=builder /build/tiny-redis /app/tiny-redis
+COPY --from=builder /go/bin/redis-cli /app/redis-cli
 
 EXPOSE 6379
 
-CMD ["./tiny-redis"]
+ENTRYPOINT ["./tiny-redis"]
