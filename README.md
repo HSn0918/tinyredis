@@ -167,7 +167,7 @@ mset: 126196.26 requests per second
 
 `tiny-redis` supports several Redis-like commands. You can view the complete list of Redis commands [here](https://redis.io/commands/).
 
-| key     | string      | list   | set         | hash         | Set  |
+| key     | string      | list   | set         | hash         | ZSet  |
 | ------- | ----------- | ------ | ----------- | ------------ | ---- |
 | del     | set         | llen   | sadd        | hdel         | zadd |
 | exists  | get         | lindex | scard       | hexists      |      |
