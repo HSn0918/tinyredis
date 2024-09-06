@@ -153,7 +153,7 @@ mset: 126196.26 requests per second
 All commands used as [redis commands](https://redis.io/commands/). You can use any redis client to communicate with thinRedis.
 
 
-| key     | string      | list   | set         | hash         | Set  |
+| key     | string      | list   | set         | hash         | ZSet  |
 | ------- | ----------- | ------ | ----------- | ------------ | ---- |
 | del     | set         | llen   | sadd        | hdel         | zadd |
 | exists  | get         | lindex | scard       | hexists      |      |
