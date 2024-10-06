@@ -22,7 +22,6 @@ func NewHandler() *Handler {
 	}
 	handler.loadAOF(aofPath)
 	go handler.aofLogger(aofPath)
-	// 启动信号捕获协程，监听系统终止信号
 	return handler
 }
 
@@ -67,7 +66,9 @@ func (h *Handler) Handle(conn net.Conn) {
 		}
 		// Log write commands to AOF
 		if IsWriteCommand(cmd) {
-			h.aofChan <- arrayData.ToBytes() // Send the command to the AOF channel
+			go func() {
+				h.aofChan <- arrayData.ToBytes()
+			}()
 		}
 	}
 }
